@@ -1,42 +1,34 @@
-//
-//
-//
-//
-//
 import { useSelector, useDispatch } from 'react-redux';
-import { selectAllPosts, postAdded } from './postsSlice';
+import {
+  selectAllPosts,
+  getPostsStatus,
+  getPostsError,
+  fetchPosts,
+} from './postsSlice';
 import AddPostForm from './AddPostForm';
+import PostsExcerpt from './PostsExcerpt';
+import { useEffect } from 'react';
 
 const PostsList = () => {
   const posts = useSelector(selectAllPosts);
+  const postsStatus = useSelector(getPostsStatus);
+  const error = useSelector(getPostsError);
   const dispatch = useDispatch();
 
-  const renderedPosts = posts.map((post) => (
-    <article key={post.id}>
-      <h3>{post.title}</h3>
-      <p>{post.content.substring(0, 100)}</p>
-    </article>
-  ));
+  useEffect(() => {
+    if (postsStatus === 'idle') dispatch(fetchPosts());
+  }, []);
 
-  const handleSubmit = (e) =>
-    dispatch(
-      postAdded({
-        id: '3',
-        title: 'Smoking Weed',
-        content: "I've heard good things.",
-        reactions: {
-          thumbsUp: 0,
-          wow: 0,
-          heart: 0,
-          rocket: 0,
-          coffee: 0,
-        },
-      })
-    );
+  const orderedPosts = posts
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const renderedPosts = orderedPosts.map((post, i) => (
+    <PostsExcerpt post={post} />
+  ));
 
   return (
     <>
-      <AddPostForm handleSubmit={handleSubmit} />
+      <AddPostForm />
       {renderedPosts}
     </>
   );
